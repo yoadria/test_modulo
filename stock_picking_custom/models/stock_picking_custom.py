@@ -25,7 +25,7 @@ class StockPickingCustom(models.Model):
     def button_validate(self):
         res = super().button_validate()
         self.confirmed_by = self.env.user  # Guarda el usuario actual
-        for move in self.move_lines_ids:
+        for move in self.move_line_ids:
             move.confirmed_by = self.env.user
 
         print(f"El usuario >>>>> {self.confirmed_by.name} <<<<<<< confirmó la transferencia")
