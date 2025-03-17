@@ -15,14 +15,33 @@
     </record>
 -->
 
+      <record id="currency_exchange_view_form" model="ir.ui.view">
+          <field name="name">currency.exchange.view.form</field>
+          <field name="model">currency.exchange.rate</field>
+          <field name="arch" type="xml">
+              <form string="Currency Exchange">
+                 
+                <group>
+                  <field name="moneda_origen_ids"/>
+                  <field name="moneda_destino_ids"/>
+                  <field name="tasa_cambio"/>
+                </group>
+                <footer>
+                  <button string="Cerrar" class="btn-primary" special="cancel"/>
+                </footer>
+              </form>
+          </field>
+      </record>
+
     <!-- actions opening views on models -->
-<!--
-    <record model="ir.actions.act_window" id="test_modulo_2.action_window">
-      <field name="name">test_modulo_2 window</field>
-      <field name="res_model">test_modulo_2.test_modulo_2</field>
-      <field name="view_mode">tree,form</field>
+
+    <record model="ir.actions.act_window" id="action_currency_window">
+      <field name="name">Cambio de divisa</field>
+      <field name="res_model">currency.exchange.rate</field>
+      <field name="view_mode">form</field>
+      <field name="target">new</field>
     </record>
--->
+
 
     <!-- server action to the one above -->
 <!--
@@ -41,14 +60,14 @@
 -->
 
     <!-- Top menu item -->
-<!--
-    <menuitem name="test_modulo_2" id="test_modulo_2.menu_root"/>
--->
+
+    <menuitem name="Cambio moneda" id="currency_menu_root"/>
+
     <!-- menu categories -->
-<!--
-    <menuitem name="Menu 1" id="test_modulo_2.menu_1" parent="test_modulo_2.menu_root"/>
-    <menuitem name="Menu 2" id="test_modulo_2.menu_2" parent="test_modulo_2.menu_root"/>
--->
+
+    <menuitem name="cambio moneda" id="currency_menu_1" parent="currency_menu_root" 
+              action="action_currency_window"/>
+   
     <!-- actions -->
 <!--
     <menuitem name="List" id="test_modulo_2.menu_1_list" parent="test_modulo_2.menu_1"
