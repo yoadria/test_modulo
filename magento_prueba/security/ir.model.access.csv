@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+magento_prueba.access_magento_backend_test,access_magento_backend_test,magento_prueba.model_magento_backend_test,base.group_user,1,0,0,0
