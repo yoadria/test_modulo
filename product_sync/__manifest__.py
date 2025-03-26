@@ -1,11 +1,6 @@
-
 {
-    'name': "Connector Canalocio - Product Sync",
-
-    'summary': """
-    Sincronizar y duplicar productos de una base de datos externa (Canalocio)""",
-
-    'description': """
+    "name": "Connector Canalocio - Product Sync",
+    "summary": """
     Características principales:
     - Creación/actualización automática de productos desde una fuente externa
     - Generación dual de productos (variantes nuevas + de segunda mano)
@@ -17,19 +12,14 @@
     - Soporta actualizaciones incrementales mediante el parámetro datefrom
     - Restricción única en códigos de barras para evitar duplicados
     """,
-
-    'author': "Binhex",
-    'category': 'Connector',
-    'version': '17.0.1.0.0',
-
-    'depends': ['connector', 'product'],
-
-    'data': [
-        'views/canalocio_view.xml',
-        'data/sync_DB.xml',
+    "author": "Binhex",
+    "category": "Product",
+    "version": "17.0.1.0.0",
+    "website": "https://github.com/yoadria/test_modulo",
+    "license": "LGPL-3",
+    "depends": ["product", "sale"],
+    "data": [
+        "views/canalocio_view.xml",
+        "data/sync_DB.xml",
     ],
-
-
-
 }
-

@@ -1,155 +1,152 @@
-from odoo import fields, models, api
-from odoo.exceptions import UserError
-import requests
-import csv
-import logging
 import copy
+import csv
+import io
+import logging
+
+import requests
+
+from odoo import fields, models
 
 _logger = logging.getLogger(__name__)
 
+
 class CanalocioSync(models.Model):
-    _name = 'canalocio.sync'
-    _description = ''
+    _name = "canalocio.sync"
+    _description = ""
 
-    location = fields.Char(string='URL de Conexion', required=True)
-    #data = fields.Text(string="CSV Data")
-
-
+    location = fields.Char(string="URL de Conexion", required=True)
+    # data = fields.Text(string="CSV Data")
 
     def action_fetch_data(self):
-        """Conectarse a la URL y obtener los datos CSV."""
+        """Conectarse a la URL y obtener los datos CSV a patir de su descarga."""
+        timeout = 10
+
+        response = requests.get(
+            self.location, stream=True, timeout=timeout
+        )  # Usamos la URL almacenada en el modelo
+        response.raise_for_status()
+        csv_data = io.StringIO(response.text)
+
+        csv_reader = csv.DictReader(csv_data, delimiter=";")
+        data = [dict(row) for row in csv_reader]
+
+        list_create = []
+
+        # BATCH_SIZE = 2000
+
+        counter = 0
+        # Ahora guardamos los productos
+        for row in data:
+            if counter >= 20:
+                break
+            # Aquí puedes procesar cada fila
+            counter += 1
+
+            barcode = row.get("ean13", "")
+
+            if not barcode or not barcode.isdigit():
+                continue
+
+            try:
+                price = row.get("pvp", "").replace(",", "")
+            except Exception:
+                price = 0.0
+
+            url_imagen = row.get("caratula")
+            imagen_base64 = self.imagen_a_base64(url_imagen)
+
+            # Crear productos
+            main_product = {
+                "name": row.get("titulo", "Sin nombre"),
+                "barcode": barcode,
+                "list_price": price,
+                "image_1920": imagen_base64,
+            }
+
+            second_hand = copy.deepcopy(main_product)
+            second_hand["barcode"] += "OKA"
+            second_hand["taxes_id"] = [(6, 0, [])]
+            second_hand["default_code"] = "Segunda Mano"
+
+            existing_prodcut = self.env["product.template"].search(
+                [("barcode", "=", barcode)], limit=1
+            )
+            existing_prodcut_second_hand = self.env["product.template"].search(
+                [("barcode", "=", second_hand["barcode"])], limit=1
+            )
+            if existing_prodcut:
+                existing_prodcut.write(main_product)
+            else:
+                list_create.append(main_product)
+
+            if existing_prodcut_second_hand:
+                existing_prodcut_second_hand.write(second_hand)
+            else:
+                list_create.append(second_hand)
+
+        # Insertar restantes
+        if list_create:
+            self.env["product.template"].create(list_create)
+
+    def sync_db(self):
+        """Actualizar los productos desde la fuente Canalocio."""
+        # falta manejar exepciones de backend por si da mas de una URL
         try:
-            response = requests.get(self.location, stream=True)  # Usamos la URL almacenada en el modelo
-            response.raise_for_status()
+            backend = self.env["canalocio.sync"].search([])
+            _logger.info(backend.location)
 
-
-            csv_reader = csv.DictReader(response.iter_lines(decode_unicode=True), delimiter=';')
-            list_create = []
-
-
-            BATCH_SIZE =2000
-
-            # Cargar TODOS los códigos de barras existentes en una sola consulta
-            existing_barcodes = set(self.env['product.template'].search_read([('barcode', '!=', False)], ['barcode']))
-            existing_barcodes = {prod['barcode'] for prod in existing_barcodes}
-
-            # Ahora guardamos los productos
-            for row in csv_reader:
-                barcode = row.get('ean13', '')
-                if not barcode or not barcode.isdigit():
-                    continue
-
-                try:
-                    price = row.get('pvp', '').replace(',', '')
-                except:
-                    price = 0.0
-
-                 # Crear productos
-                main_product = {
-                    'name': row.get('titulo', 'Sin nombre'),
-                    'barcode': barcode,
-                    'list_price': price,
-                }
-
-                second_hand = copy.deepcopy(main_product)
-                second_hand['barcode'] += 'OKA'
-                second_hand['taxes_id'] = [(6, 0, [])]
-                second_hand['default_code'] = 'Segunda Mano'
-
-                #  Verificar existencia en `existing_barcodes`
-                if barcode not in existing_barcodes:
-                    list_create.append(main_product)
-                    existing_barcodes.add(barcode)  # Lo agregamos al set para evitar duplicados en esta ejecución
-
-                if second_hand['barcode'] not in existing_barcodes:
-                    list_create.append(second_hand)
-                    existing_barcodes.add(second_hand['barcode'])
-
-                #  Insertar en lotes grandes para mejorar rendimiento
-                if len(list_create) >= BATCH_SIZE:
-                    self.env['product.template'].create(list_create)
-                    list_create = []
-
-
-
-            # Insertar restantes
-            if list_create:
-                self.env['product.template'].create(list_create)
-
-
-        except Exception as e:
-            _logger.error("Error crítico: %s", str(e))
-            raise UserError(f"Falló la sincronización: {str(e)}")
-
-
-    def update(self):
-        try:
-            # Buscar el registro por el campo 'location'
-            url = 'http://www.canalocio.es/export_info.php?key=onan&val=834jds2k,23WZjd92Pas2S$2&datefrom=2024-08-01&outfile=0'
-            backend = self.env['canalocio.sync'].search([('location', '=', url)], limit=1)
-
-            if not backend:
-
-                raise UserError("No se encontró el registro de Magento Backend con la URL proporcionada.")
-            # Llamar al método 'action_fetch_data' de ese registro
-            backend.action_fetch_data()
         except Exception:
-            print('error al actualizar automaticamente')
+            _logger.info("error al actualizar automaticamente")
 
+    def imagen_a_base64(self, url):
+        import base64
 
-    # def _create_product(self, product_data):
-    #     """
-    #     Crea un producto en product.template usando los datos proporcionados.
+        timeout = 10
+        try:
+            response = requests.get(url, stream=True, timeout=timeout)
+            response.raise_for_status()
+            img_base64 = base64.b64encode(response.content).decode()
+            return img_base64
+        except requests.exceptions.RequestException as e:
+            _logger.info(f"Error al obtener imagen: {e}")
+            return None
+        except Exception as e:
+            _logger.info(f"Error desconocido: {e}")
+            return None
 
-    #     :param product_data: Diccionario con los valores del producto, ejemplo:
-    #                         {'name': 'Matrix Revolutions', 'barcode': '7321930178229'}
-    #     """
-    #     try:
-    #         # Verificar que los campos esenciales están presentes
-    #         name = product_data.get("name", "Producto sin nombre")  # Valor por defecto si no hay 'name'
-    #         barcode = product_data.get("barcode", None)  # Puede ser None si no tiene código de barras
-    #         if not barcode or barcode == 'OKA':
-    #             return False
+    def prueba(self):
+        """funcion conectada al boton prueba"""
+        # try:
 
-    #         # Crear el producto
-    #         product_vals = {
-    #             "name": name,
-    #             "barcode": barcode,
-    #             'list_price': product_data.get('list_price', 0.0),
-    #         }
+        #     # default_lang =  self.env['res.lang'].\
+        # _lang_get(self.env.company.partner_id.lang)
+        #     lang_code = self.env.company.partner_id.lang or 'en_US'
+        #     lang = self.env['res.lang']._lang_get(lang_code)
+        #     precio = '1,222.99'
+        #     precio_final = lang._parse_float(precio)
 
-    #         if 'OKA' in barcode: # no añadirle los impuestos si es de segunda mano
-    #             product_vals['taxes_id'] = [(6, 0, [])]  # Lista vacía de impuestos
-    #             product_vals['default_code'] = 'Segunda Mano'
+        #     product = {
+        #         "name": 'producto prueba',
+        #         "list_price": precio_final
+        #     }
+        #     self.env["product.template"].create(product)
+        #     _logger.info(lang)
+        # except Exception as e:
+        #     _logger.info(f"Error desconocido: {e}")
 
-    #         self.env["product.template"].create(product_vals)
-    #         return True
+        # default_lang =  self.env['res.lang'].\
+        # _lang_get(self.env.company.partner_id.lang)
+        import locale
 
-    #     except Exception:
-    #         return False
+        # import wdb; wdb.set_trace()
 
+        usage_lang = self.env.user.lang
+        locale.setlocale(locale.LC_ALL, f"{usage_lang}.UTF-8")
+        precio = "1.222,99"
+        try:
+            precio_final = locale.atof(precio)
+        except ValueError:
+            precio_final = float(precio.replace(".", "").replace(",", "."))
 
-
-
-    # def get_producto(self, data):
-    #     """
-    #     Busca un producto en 'product.template' por su código de barras.
-
-    #     :param data: String con el código de barras del producto.
-    #     :return: Registro de 'product.template' si se encuentra, o false si no existe.
-    #     """
-    #     try:
-    #         producto = self.env['product.template'].search([
-    #             ('barcode', '=', data)  # Busca solo por código de barras exacto
-    #         ], limit=1)
-
-    #         if producto:
-    #             return producto
-    #         else:
-    #             return False
-
-    #     except Exception:
-    #         return False
-
-
-
+        product = {"name": "producto prueba", "list_price": precio_final}
+        self.env["product.template"].create(product)
