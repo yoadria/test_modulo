@@ -15,6 +15,26 @@ class CanalocioSync(models.Model):
     _description = ""
 
     location = fields.Char(string="URL de Conexion", required=True)
+    # lang_id = fields.Many2one(
+    #     'res.lang',
+    #     string="Idioma",
+    #     default=lambda self: self.env.user.lang,  # Busca el idioma del usuario actual
+    # )
+    lang_id = fields.Many2one(
+        "res.lang",  # Relación con el modelo res.lang
+        string="Idioma",
+        default=lambda self: self.env["res.lang"].search(
+            [("code", "=", self.env.user.lang)], limit=1
+        ),
+    )
+    # lang_id = fields.Many2one('res.lang', string="Language")
+    # @api.model
+    # def default_get(self, fields_list):
+    #     defaults = super(CanalocioSync, self).default_get(fields_list)
+    #     lang = self.env['res.lang'].search([], limit=1)  # Busca un idioma por defecto
+    #     if lang:
+    #         defaults['lang_id'] = lang.id
+    #     return defaults
     # data = fields.Text(string="CSV Data")
 
     def action_fetch_data(self):
@@ -114,7 +134,7 @@ class CanalocioSync(models.Model):
             _logger.info(f"Error desconocido: {e}")
             return None
 
-    def prueba(self):
+    def prueba1(self):
         """funcion conectada al boton prueba"""
         # try:
 
@@ -136,17 +156,21 @@ class CanalocioSync(models.Model):
 
         # default_lang =  self.env['res.lang'].\
         # _lang_get(self.env.company.partner_id.lang)
-        import locale
+
+    def prueba(self):
+        # import locale
 
         # import wdb; wdb.set_trace()
 
-        usage_lang = self.env.user.lang
-        locale.setlocale(locale.LC_ALL, f"{usage_lang}.UTF-8")
-        precio = "1.222,99"
-        try:
-            precio_final = locale.atof(precio)
-        except ValueError:
-            precio_final = float(precio.replace(".", "").replace(",", "."))
+        _logger.info(self.location)
+        _logger.info(self.lang_id.code)
+        # usage_lang = self.env.user.lang
+        # locale.setlocale(locale.LC_ALL, f"{usage_lang}.UTF-8")
+        # precio = "1.222,99"
+        # try:
+        #     precio_final = locale.atof(precio)
+        # except ValueError:
+        #     precio_final = float(precio.replace(".", "").replace(",", "."))
 
-        product = {"name": "producto prueba", "list_price": precio_final}
-        self.env["product.template"].create(product)
+        # product = {"name": "producto prueba", "list_price": precio_final}
+        # self.env["product.template"].create(product)
