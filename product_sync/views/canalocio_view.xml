@@ -23,22 +23,6 @@
                     <group>
                         <field name="location" />
                         <field name="lang_id" />
-                        <button
-                            name="action_fetch_data"
-                            type="object"
-                            string="Fetch Data"
-                            class="btn-primary"
-                            groups="base.group_user"
-                        />
-                    </group>
-                    <group>
-                        <button
-                            name="prueba"
-                            type="object"
-                            string="prueba"
-                            class="btn-primary"
-                            groups="base.group_user"
-                        />
                     </group>
                 </sheet>
             </form>

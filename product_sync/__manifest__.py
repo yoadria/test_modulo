@@ -1,5 +1,5 @@
 {
-    "name": "Connector Canalocio - Product Sync",
+    "name": "Canalocio - Product Sync",
     "summary": """
     Características principales:
     - Creación/actualización automática de productos desde una fuente externa
@@ -17,8 +17,9 @@
     "version": "17.0.1.0.0",
     "website": "https://github.com/yoadria/test_modulo",
     "license": "LGPL-3",
-    "depends": ["product", "sale"],
+    "depends": ["stock", "sale"],
     "data": [
+        "security/ir.model.access.csv",
         "views/canalocio_view.xml",
         "data/sync_DB.xml",
     ],

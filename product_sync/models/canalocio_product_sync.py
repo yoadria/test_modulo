@@ -15,11 +15,6 @@ class CanalocioSync(models.Model):
     _description = ""
 
     location = fields.Char(string="URL de Conexion", required=True)
-    # lang_id = fields.Many2one(
-    #     'res.lang',
-    #     string="Idioma",
-    #     default=lambda self: self.env.user.lang,  # Busca el idioma del usuario actual
-    # )
     lang_id = fields.Many2one(
         "res.lang",  # Relación con el modelo res.lang
         string="Idioma",
@@ -27,101 +22,115 @@ class CanalocioSync(models.Model):
             [("code", "=", self.env.user.lang)], limit=1
         ),
     )
-    # lang_id = fields.Many2one('res.lang', string="Language")
-    # @api.model
-    # def default_get(self, fields_list):
-    #     defaults = super(CanalocioSync, self).default_get(fields_list)
-    #     lang = self.env['res.lang'].search([], limit=1)  # Busca un idioma por defecto
-    #     if lang:
-    #         defaults['lang_id'] = lang.id
-    #     return defaults
-    # data = fields.Text(string="CSV Data")
 
     def action_fetch_data(self):
         """Conectarse a la URL y obtener los datos CSV a patir de su descarga."""
-        timeout = 10
+        try:
+            timeout = 120
+            BATCH_SIZE = 2000
 
-        response = requests.get(
-            self.location, stream=True, timeout=timeout
-        )  # Usamos la URL almacenada en el modelo
-        response.raise_for_status()
-        csv_data = io.StringIO(response.text)
+            response = requests.get(
+                self.location, stream=True, timeout=timeout
+            )  # Usamos la URL almacenada en el modelo
+            response.raise_for_status()
+            csv_data = io.StringIO(response.text)
 
-        csv_reader = csv.DictReader(csv_data, delimiter=";")
-        data = [dict(row) for row in csv_reader]
+            csv_reader = csv.DictReader(csv_data, delimiter=";")
+            data = [dict(row) for row in csv_reader]
 
-        list_create = []
+            list_create = []
 
-        # BATCH_SIZE = 2000
+            # Ahora guardamos los productos
+            for row in data:
+                barcode = row.get("ean13", "")
 
-        counter = 0
-        # Ahora guardamos los productos
-        for row in data:
-            if counter >= 20:
-                break
-            # Aquí puedes procesar cada fila
-            counter += 1
+                if not barcode or not barcode.isdigit():
+                    continue
 
-            barcode = row.get("ean13", "")
+                try:
+                    pvp = row.get("pvp", "").replace(",", "")
+                except Exception:
+                    pvp = 0.0
+                try:
+                    pvd = row.get("pvd", "").replace(",", "")
+                except Exception:
+                    pvd = 0.0
 
-            if not barcode or not barcode.isdigit():
-                continue
+                try:
+                    peso = row.get("peso", "").replace(",", "")
+                except Exception:
+                    peso = 0.0
 
-            try:
-                price = row.get("pvp", "").replace(",", "")
-            except Exception:
-                price = 0.0
+                if row.get("estado") == "disponible":
+                    sale_ok = True
+                else:
+                    sale_ok = False
 
-            url_imagen = row.get("caratula")
-            imagen_base64 = self.imagen_a_base64(url_imagen)
+                url_imagen = row.get("caratula")
+                imagen_base64 = self.imagen_a_base64(url_imagen)
 
-            # Crear productos
-            main_product = {
-                "name": row.get("titulo", "Sin nombre"),
-                "barcode": barcode,
-                "list_price": price,
-                "image_1920": imagen_base64,
-            }
+                # Crear productos
+                main_product = {
+                    "name": row.get("titulo", "Sin nombre"),
+                    "barcode": barcode,
+                    "list_price": pvp,
+                    "standard_price": pvd,
+                    "weight": peso,
+                    "sale_ok": sale_ok,
+                    "detailed_type": "product",
+                    "image_1920": imagen_base64,
+                }
 
-            second_hand = copy.deepcopy(main_product)
-            second_hand["barcode"] += "OKA"
-            second_hand["taxes_id"] = [(6, 0, [])]
-            second_hand["default_code"] = "Segunda Mano"
+                second_hand = copy.deepcopy(main_product)
+                second_hand["barcode"] += "OKA"
+                second_hand["taxes_id"] = [(6, 0, [])]
+                second_hand["default_code"] = "Segunda Mano"
 
-            existing_prodcut = self.env["product.template"].search(
-                [("barcode", "=", barcode)], limit=1
-            )
-            existing_prodcut_second_hand = self.env["product.template"].search(
-                [("barcode", "=", second_hand["barcode"])], limit=1
-            )
-            if existing_prodcut:
-                existing_prodcut.write(main_product)
-            else:
-                list_create.append(main_product)
+                existing_prodcut = self.env["product.template"].search(
+                    [("barcode", "=", barcode)], limit=1
+                )
+                existing_prodcut_second_hand = self.env["product.template"].search(
+                    [("barcode", "=", second_hand["barcode"])], limit=1
+                )
+                if existing_prodcut:
+                    existing_prodcut.write(main_product)
+                else:
+                    list_create.append(main_product)
 
-            if existing_prodcut_second_hand:
-                existing_prodcut_second_hand.write(second_hand)
-            else:
-                list_create.append(second_hand)
+                if existing_prodcut_second_hand:
+                    existing_prodcut_second_hand.write(second_hand)
+                else:
+                    list_create.append(second_hand)
 
-        # Insertar restantes
-        if list_create:
-            self.env["product.template"].create(list_create)
+                # Insertar en lotes
+                if len(list_create) >= BATCH_SIZE:
+                    self.env["product.template"].create(list_create)
+                    list_create.clear()
+
+            # Insertar restantes
+            if list_create:
+                self.env["product.template"].create(list_create)
+        except requests.exceptions.RequestException as e:
+            _logger.info(f"Error al conectar con la URL: {e}")
+        except Exception as e:
+            _logger.info(f"Error desconocido: {e}")
 
     def sync_db(self):
         """Actualizar los productos desde la fuente Canalocio."""
-        # falta manejar exepciones de backend por si da mas de una URL
         try:
+            _logger.info("Empieza sincronisacion de productos")
             backend = self.env["canalocio.sync"].search([])
-            _logger.info(backend.location)
-
-        except Exception:
-            _logger.info("error al actualizar automaticamente")
+            for ref in backend:
+                if "www.canalocio.es" in ref.location:
+                    ref.action_fetch_data()
+        except Exception as e:
+            _logger.info("Error al sincronizar productos")
+            _logger.info(f"Error: {e}")
 
     def imagen_a_base64(self, url):
         import base64
 
-        timeout = 10
+        timeout = 50
         try:
             response = requests.get(url, stream=True, timeout=timeout)
             response.raise_for_status()
@@ -133,44 +142,3 @@ class CanalocioSync(models.Model):
         except Exception as e:
             _logger.info(f"Error desconocido: {e}")
             return None
-
-    def prueba1(self):
-        """funcion conectada al boton prueba"""
-        # try:
-
-        #     # default_lang =  self.env['res.lang'].\
-        # _lang_get(self.env.company.partner_id.lang)
-        #     lang_code = self.env.company.partner_id.lang or 'en_US'
-        #     lang = self.env['res.lang']._lang_get(lang_code)
-        #     precio = '1,222.99'
-        #     precio_final = lang._parse_float(precio)
-
-        #     product = {
-        #         "name": 'producto prueba',
-        #         "list_price": precio_final
-        #     }
-        #     self.env["product.template"].create(product)
-        #     _logger.info(lang)
-        # except Exception as e:
-        #     _logger.info(f"Error desconocido: {e}")
-
-        # default_lang =  self.env['res.lang'].\
-        # _lang_get(self.env.company.partner_id.lang)
-
-    def prueba(self):
-        # import locale
-
-        # import wdb; wdb.set_trace()
-
-        _logger.info(self.location)
-        _logger.info(self.lang_id.code)
-        # usage_lang = self.env.user.lang
-        # locale.setlocale(locale.LC_ALL, f"{usage_lang}.UTF-8")
-        # precio = "1.222,99"
-        # try:
-        #     precio_final = locale.atof(precio)
-        # except ValueError:
-        #     precio_final = float(precio.replace(".", "").replace(",", "."))
-
-        # product = {"name": "producto prueba", "list_price": precio_final}
-        # self.env["product.template"].create(product)
