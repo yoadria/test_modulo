@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_canalocio_sync,access_canalocio_sync,model_canalocio_sync,base.group_system,1,1,1,1
