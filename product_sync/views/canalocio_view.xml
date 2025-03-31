@@ -1,5 +1,6 @@
 <odoo>
 
+
     <!-- explicit list view definition -->
 
     <record model="ir.ui.view" id="canalocio_sync_view_tree">
@@ -29,51 +30,29 @@
         </field>
     </record>
 
-    <!-- actions opening views on models -->
+        <!-- actions opening views on models -->
 
-    <record model="ir.actions.act_window" id="action_canalocio_sync">
-        <field name="name">Url Sync</field>
-        <field name="res_model">canalocio.sync</field>
-        <field name="view_mode">tree,form</field>
-        <field name="target">current</field>
-    </record>
+        <record model="ir.actions.act_window" id="action_canalocio_sync">
+            <field name="name">Url Sync</field>
+            <field name="res_model">canalocio.sync</field>
+            <field name="view_mode">tree,form</field>
+            <field name="target">current</field>
+        </record>
 
 
-    <!-- server action to the one above -->
-    <!--
-    <record model="ir.actions.server" id="test_modulo_2.action_server">
-      <field name="name">test_modulo_2 server</field>
-      <field name="model_id" ref="model_test_modulo_2_test_modulo_2"/>
-      <field name="state">code</field>
-      <field name="code">
-        action = {
-          "type": "ir.actions.act_window",
-          "view_mode": "tree,form",
-          "res_model": model._name,
-        }
-      </field>
-    </record>
--->
 
-    <!-- Top menu item -->
+        <!-- Top menu item -->
 
-    <menuitem name="Url Sync" id="menu_canalocio" />
+        <menuitem name="Url Sync" id="menu_canalocio" />
 
-    <!-- menu categories -->
+        <!-- menu categories -->
 
-    <menuitem
+        <menuitem
         name="Url Sync"
         id="menu_canalocio_1"
         parent="menu_canalocio"
         action="action_canalocio_sync"
     />
 
-    <!-- actions -->
-    <!--
-    <menuitem name="List" id="test_modulo_2.menu_1_list" parent="test_modulo_2.menu_1"
-              action="test_modulo_2.action_window"/>
-    <menuitem name="Server to list" id="test_modulo_2" parent="test_modulo_2.menu_2"
-              action="test_modulo_2.action_server"/>
--->
 
 </odoo>
