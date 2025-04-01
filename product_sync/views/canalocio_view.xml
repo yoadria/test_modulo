@@ -10,6 +10,12 @@
             <tree>
                 <field name="location" />
                 <field name="lang_id" />
+                <button
+                    name="queue_job_demo"
+                    string="Activar"
+                    type="object"
+                    class="btn btn-primary"
+                />
             </tree>
         </field>
     </record>
@@ -24,6 +30,14 @@
                     <group>
                         <field name="location" />
                         <field name="lang_id" />
+                    </group>
+                    <group>
+                        <button
+                            name="sync_db"
+                            string="Activar"
+                            type="object"
+                            class="btn btn-primary"
+                        />
                     </group>
                 </sheet>
             </form>

@@ -26,9 +26,10 @@ class CanalocioSync(models.Model):
     def action_fetch_data(self):
         """Conectarse a la URL y obtener los datos CSV a patir de su descarga."""
         try:
-            timeout = 120
-            BATCH_SIZE = 2000
-
+            _logger.info("Iniciando descarga de datos")
+            timeout = 30
+            BATCH_SIZE = 300
+            count = 0
             response = requests.get(
                 self.location, stream=True, timeout=timeout
             )  # Usamos la URL almacenada en el modelo
@@ -42,6 +43,10 @@ class CanalocioSync(models.Model):
 
             # Ahora guardamos los productos
             for row in data:
+                count += 1
+                if count > 10:
+                    break
+
                 barcode = row.get("ean13", "")
 
                 if not barcode or not barcode.isdigit():
@@ -68,6 +73,7 @@ class CanalocioSync(models.Model):
 
                 url_imagen = row.get("caratula")
                 imagen_base64 = self.imagen_a_base64(url_imagen)
+                # imagen_base64 = self.with_delay().imagen_a_base64(url_imagen)
 
                 # Crear productos
                 main_product = {
@@ -106,10 +112,14 @@ class CanalocioSync(models.Model):
                 if len(list_create) >= BATCH_SIZE:
                     self.env["product.template"].create(list_create)
                     list_create.clear()
+                    # self.with_delay().process_batch(list_create)
+                    list_create = []
 
             # Insertar restantes
             if list_create:
+                # self.with_delay().process_batch(list_create)
                 self.env["product.template"].create(list_create)
+
         except requests.exceptions.RequestException as e:
             _logger.info(f"Error al conectar con la URL: {e}")
         except Exception as e:
@@ -122,7 +132,8 @@ class CanalocioSync(models.Model):
             backend = self.env["canalocio.sync"].search([])
             for ref in backend:
                 if "www.canalocio.es" in ref.location:
-                    ref.action_fetch_data()
+                    # ref.action_fetch_data()
+                    ref.with_delay(channel="root").action_fetch_data()
         except Exception as e:
             _logger.info("Error al sincronizar productos")
             _logger.info(f"Error: {e}")
@@ -130,7 +141,7 @@ class CanalocioSync(models.Model):
     def imagen_a_base64(self, url):
         import base64
 
-        timeout = 50
+        timeout = 30
         try:
             response = requests.get(url, stream=True, timeout=timeout)
             response.raise_for_status()
@@ -142,3 +153,36 @@ class CanalocioSync(models.Model):
         except Exception as e:
             _logger.info(f"Error desconocido: {e}")
             return None
+
+    def process_batch(self, list_create):
+        """Procesar un lote de productos."""
+        self.env["product.template"].create(list_create)
+        _logger.info("Lote de productos procesado")
+
+    def queue_job_demo(self):
+        # self.process_1()
+        # self.process_2()
+        # self.process_3()
+        _logger.info("Iniciando cola de trabajos")
+        self.with_delay().process_1()
+
+        self.with_delay().process_2()
+
+        self.with_delay().process_3()
+
+        _logger.info("Cola de trabajos finalizada")
+
+    def process_1(self):
+        product = {"name": "Producto de prueba 1"}
+        self.env["product.template"].create(product)
+        _logger.info("Proceso 1 completado")
+
+    def process_2(self):
+        product = {"name": "Producto de prueba 2"}
+        self.env["product.template"].create(product)
+        _logger.info("Proceso 2 completado")
+
+    def process_3(self):
+        product = {"name": "Producto de prueba 3"}
+        self.env["product.template"].create(product)
+        _logger.info("Proceso 3 completado")
