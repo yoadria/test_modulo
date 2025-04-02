@@ -1,0 +1,7 @@
+<odoo>
+    <record id="demo_canalocio_sync_record" model="canalocio.sync">
+        <field
+            name="location"
+        >http://www.canalocio.es/export_info.php?key=onan&amp;val=834jds2k,23WZjd92Pas2S%242&amp;datefrom=2024-08-01&amp;outfile=1</field>
+    </record>
+</odoo>

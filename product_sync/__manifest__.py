@@ -22,5 +22,7 @@
         "security/ir.model.access.csv",
         "views/canalocio_view.xml",
         "data/sync_DB.xml",
+        "data/location.xml",
+        "data/queue_job_channels.xml",
     ],
 }

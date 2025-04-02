@@ -11,7 +11,7 @@
                 <field name="location" />
                 <field name="lang_id" />
                 <button
-                    name="queue_job_demo"
+                    name="sync_db"
                     string="Activar"
                     type="object"
                     class="btn btn-primary"
