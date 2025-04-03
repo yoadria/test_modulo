@@ -32,6 +32,11 @@
                         <field name="lang_id" />
                     </group>
                     <group>
+                        <field name="cron_id" />
+                        <!-- <field name="cron_active"/> -->
+
+                    </group>
+                    <group>
                         <button
                             name="sync_db"
                             string="Activar"

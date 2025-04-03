@@ -22,6 +22,18 @@ class CanalocioSync(models.Model):
             [("code", "=", self.env.user.lang)], limit=1
         ),
     )
+    cron_id = fields.Many2one(
+        "ir.cron",
+        string="Tarea Programada",
+        default=lambda self: self.env["ir.cron"].search(
+            [("model_id.model", "=", "canalocio.sync")], limit=1
+    ),
+    )
+
+    # cron_active = fields.Boolean(
+    #     string="Tarea Activa",
+    #     default=lambda self: self.cron_id.active if self.cron_id else False,
+    # )
 
     def action_fetch_data(self):
         """Conectarse a la URL y obtener los datos CSV a patir de su descarga."""
@@ -29,7 +41,7 @@ class CanalocioSync(models.Model):
             _logger.info("Iniciando descarga de datos")
 
             timeout = 30
-            BATCH_SIZE = 5
+            BATCH_SIZE = 300
 
             response = requests.get(
                 self.location, stream=True, timeout=timeout
@@ -50,7 +62,7 @@ class CanalocioSync(models.Model):
             batch = data[i : i + BATCH_SIZE]
             self.with_delay().process_batch(batch)
             # Aquí puedes procesar cada lote de 300 filas
-            break
+
 
     def process_batch(self, batch):
         """Procesar un lote de productos."""
@@ -97,7 +109,7 @@ class CanalocioSync(models.Model):
                 "weight": peso,
                 "sale_ok": sale_ok,
                 "detailed_type": "product",
-                # "image_1920": imagen_base64,
+                #"image_1920": imagen_base64,
             }
 
             second_hand = copy.deepcopy(main_product)
@@ -152,30 +164,4 @@ class CanalocioSync(models.Model):
             _logger.info(f"Error desconocido: {e}")
             return None
 
-    def queue_job_demo(self):
-        # self.process_1()
-        # self.process_2()
-        # self.process_3()
-        _logger.info("Iniciando cola de trabajos")
-        self.with_delay().process_1()
 
-        self.with_delay().process_2()
-
-        self.with_delay().process_3()
-
-        _logger.info("Cola de trabajos finalizada")
-
-    def process_1(self):
-        product = {"name": "Producto de prueba 1"}
-        self.env["product.template"].create(product)
-        _logger.info("Proceso 1 completado")
-
-    def process_2(self):
-        product = {"name": "Producto de prueba 2"}
-        self.env["product.template"].create(product)
-        _logger.info("Proceso 2 completado")
-
-    def process_3(self):
-        product = {"name": "Producto de prueba 3"}
-        self.env["product.template"].create(product)
-        _logger.info("Proceso 3 completado")

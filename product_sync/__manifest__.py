@@ -17,7 +17,7 @@
     "version": "17.0.1.0.0",
     "website": "https://github.com/yoadria/test_modulo",
     "license": "LGPL-3",
-    "depends": ["stock", "sale"],
+    "depends": ["stock", "sale", "queue_job"],
     "data": [
         "security/ir.model.access.csv",
         "views/canalocio_view.xml",
