@@ -13,16 +13,17 @@
     - Restricción única en códigos de barras para evitar duplicados
     """,
     "author": "Binhex",
-    "category": "Product",
+    "category": "Connector",
     "version": "17.0.1.0.0",
     "website": "https://github.com/yoadria/test_modulo",
     "license": "LGPL-3",
-    "depends": ["stock", "sale", "queue_job"],
+    "depends": ["stock", "sale", "connector_importer", "account"],
+    "external_dependencies": {"python": ["requests"]},
     "data": [
-        "security/ir.model.access.csv",
-        "views/canalocio_view.xml",
-        "data/sync_DB.xml",
+        # "security/ir.model.access.csv",
+        # "views/canalocio_view.xml",
+        # "data/sync_DB.xml",
         "data/location.xml",
-        "data/queue_job_channels.xml",
+        # "data/queue_job_channels.xml",
     ],
 }

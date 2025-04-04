@@ -1,7 +1,57 @@
 <odoo>
-    <record id="demo_canalocio_sync_record" model="canalocio.sync">
+    <!-- <record id="demo_canalocio_sync_record" model="canalocio.sync">
         <field
             name="location"
         >http://www.canalocio.es/export_info.php?key=onan&amp;val=834jds2k,23WZjd92Pas2S%242&amp;datefrom=2024-08-01&amp;outfile=1</field>
-    </record>
+
+    </record> -->
+
+
+   <!-- uso de connector_importer -->
+
+
+    <!-- creamos un conector usando el modelos import.backend -->
+  <record id="import_backend_canalocio_sync" model="import.backend">
+    <field name="name">Sync Canalocio</field>
+    <field name="version">1.0</field>
+  </record>
+
+    <!-- esto seria la fuente de la importacion del csv -->
+  <record id="import_source_csv_canalocio_product" model="import.source.csv">
+    <field name="name">canalocio_product</field>
+    <field name="chunk_size" eval="400" />
+    <field
+            name="csv_path"
+        >http://www.canalocio.es/export_info.php?key=onan&amp;val=834jds2k,23WZjd92Pas2S%242&amp;datefrom=2024-08-01&amp;outfile=1</field>
+    <field name="csv_delimiter">;</field>
+    <field name="csv_encoding">utf-8</field>
+  </record>
+
+    <!-- creamos la importacion de los productos import.type -->
+  <record id="import_type_canalocio_product" model="import.type">
+    <field name="name">Sync Canalocio</field>
+    <field name="key">canalocio_product</field>
+    <field name="options">
+- model: product.product
+  options:
+    importer:
+      odoo_unique_key: barcode
+    mapper:
+      name: canalocio.mapper
+    </field>
+  </record>
+    <!-- creamos el recordset para poder importar los productos  -->
+  <record id="import_recordset_canalocio_product_canal" model="import.recordset">
+    <field name="sequence" eval="45" />
+    <field name="backend_id" ref="import_backend_canalocio_sync" />
+    <field name="source_model">import.source.csv</field>
+    <field name="source_id" ref="import_source_csv_canalocio_product" />
+    <field name="import_type_id" ref="import_type_canalocio_product" />
+  </record>
+
+    <!-- creamos la etiqueta de segunda mano -->
+  <record id="product_tag_second_hand" model="product.tag">
+    <field name="name">Second-hand</field>
+  </record>
+
 </odoo>
