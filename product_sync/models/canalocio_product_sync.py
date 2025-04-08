@@ -1,166 +1,167 @@
-import copy
-import csv
-import io
-import logging
+# import copy
+# import csv
+# import io
+# import logging
 
-import requests
+# import requests
 
-from odoo import fields, models
+# from odoo import fields, models
 
-_logger = logging.getLogger(__name__)
+# _logger = logging.getLogger(__name__)
 
 
-class CanalocioSync(models.Model):
-    _name = "canalocio.sync"
-    _inherit = "cron.mixin"
-    _description = "Canal Ocio Sync"
+# class CanalocioSync(models.Model):
+#     _name = "canalocio.sync"
+#     _inherit = "cron.mixin"
+#     _description = "Canal Ocio Sync"
 
-    location = fields.Char(string="URL de Conexion", required=True)
-    lang_id = fields.Many2one(
-        "res.lang",  # Relación con el modelo res.lang
-        string="Idioma",
-        default=lambda self: self.env["res.lang"].search(
-            [("code", "=", self.env.user.lang)], limit=1
-        ),
-    )
+#     location = fields.Char(string="URL de Conexion", required=True)
+#     lang_id = fields.Many2one(
+#         "res.lang",  # Relación con el modelo res.lang
+#         string="Idioma",
+#         default=lambda self: self.env["res.lang"].search(
+#             [("code", "=", self.env.user.lang)], limit=1
+#         ),
+#     )
 
-    cron_id = fields.Many2one(
-        "ir.cron",
-        string="Tarea Programada",
-        default=lambda self: self.env["ir.cron"].search(
-            [("model_id.model", "=", "canalocio.sync")], limit=1
-        ),
-    )
+#     cron_id = fields.Many2one(
+#         "ir.cron",
+#         string="Tarea Programada",
+#         default=lambda self: self.env["ir.cron"].search(
+#             [("model_id.model", "=", "canalocio.sync")], limit=1
+#     ),
+#     )
 
-    cron_active = fields.Boolean(
-        string="Tarea Activa",
-        default=lambda self: self.cron_id.active if self.cron_id else False,
-    )
+#     cron_active = fields.Boolean(
+#         string="Tarea Activa",
+#         default=lambda self: self.cron_id.active if self.cron_id else False,
+#     )
 
-    def action_fetch_data(self):
-        """Conectarse a la URL y obtener los datos CSV a patir de su descarga."""
-        try:
-            _logger.info("Iniciando descarga de datos")
+#     def action_fetch_data(self):
+#         """Conectarse a la URL y obtener los datos CSV a patir de su descarga."""
+#         try:
+#             _logger.info("Iniciando descarga de datos")
 
-            timeout = 30
-            BATCH_SIZE = 300
+#             timeout = 30
+#             BATCH_SIZE = 300
 
-            response = requests.get(
-                self.location, stream=True, timeout=timeout
-            )  # Usamos la URL almacenada en el modelo
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            _logger.info(f"Error al conectar con la URL: {e}")
-            raise e
-        except Exception as e:
-            _logger.info(f"Error desconocido: {e}")
-            raise e
+#             response = requests.get(
+#                 self.location, stream=True, timeout=timeout
+#             )  # Usamos la URL almacenada en el modelo
+#             response.raise_for_status()
+#         except requests.exceptions.RequestException as e:
+#             _logger.info(f"Error al conectar con la URL: {e}")
+#             raise e
+#         except Exception as e:
+#             _logger.info(f"Error desconocido: {e}")
+#             raise e
 
-        csv_data = io.StringIO(response.text)
-        csv_reader = csv.DictReader(csv_data, delimiter=";")
+#         csv_data = io.StringIO(response.text)
+#         csv_reader = csv.DictReader(csv_data, delimiter=";")
 
-        data = list(csv_reader)
-        for i in range(0, len(data), BATCH_SIZE):
-            batch = data[i : i + BATCH_SIZE]
-            self.with_delay().process_batch(batch)
-            # Aquí puedes procesar cada lote de 300 filas
+#         data = list(csv_reader)
+#         for i in range(0, len(data), BATCH_SIZE):
+#             batch = data[i : i + BATCH_SIZE]
+#             self.with_delay().process_batch(batch)
+#             # Aquí puedes procesar cada lote de 300 filas
 
-    def process_batch(self, batch):
-        """Procesar un lote de productos."""
-        _logger.info("Iniciando procesamiento de lote")
 
-        # Ahora guardamos los productos
-        for row in batch:
-            # row = dict(row)
+#     def process_batch(self, batch):
+#         """Procesar un lote de productos."""
+#         _logger.info("Iniciando procesamiento de lote")
 
-            barcode = row.get("ean13", "")
+#         # Ahora guardamos los productos
+#         for row in batch:
+#             # row = dict(row)
 
-            if not barcode or not barcode.isdigit():
-                continue
+#             barcode = row.get("ean13", "")
 
-            try:
-                pvp = row.get("pvp", "").replace(",", "")
-            except Exception:
-                pvp = 0.0
-            try:
-                pvd = row.get("pvd", "").replace(",", "")
-            except Exception:
-                pvd = 0.0
+#             if not barcode or not barcode.isdigit():
+#                 continue
 
-            try:
-                peso = row.get("peso", "").replace(",", "")
-            except Exception:
-                peso = 0.0
+#             try:
+#                 pvp = row.get("pvp", "").replace(",", "")
+#             except Exception:
+#                 pvp = 0.0
+#             try:
+#                 pvd = row.get("pvd", "").replace(",", "")
+#             except Exception:
+#                 pvd = 0.0
 
-            if row.get("estado") == "disponible":
-                sale_ok = True
-            else:
-                sale_ok = False
+#             try:
+#                 peso = row.get("peso", "").replace(",", "")
+#             except Exception:
+#                 peso = 0.0
 
-            # url_imagen = row.get("caratula")
-            # imagen_base64 = self.imagen_a_base64(url_imagen)
-            # imagen_base64 = self.with_delay().imagen_a_base64(url_imagen)
+#             if row.get("estado") == "disponible":
+#                 sale_ok = True
+#             else:
+#                 sale_ok = False
 
-            # Crear productos
-            main_product = {
-                "name": row.get("titulo", "Sin nombre"),
-                "barcode": barcode,
-                "list_price": pvp,
-                "standard_price": pvd,
-                "weight": peso,
-                "sale_ok": sale_ok,
-                "detailed_type": "product",
-                # "image_1920": imagen_base64,
-            }
+#             # url_imagen = row.get("caratula")
+#             # imagen_base64 = self.imagen_a_base64(url_imagen)
+#             # imagen_base64 = self.with_delay().imagen_a_base64(url_imagen)
 
-            second_hand = copy.deepcopy(main_product)
-            second_hand["barcode"] += "OKA"
-            second_hand["taxes_id"] = [(6, 0, [])]
-            second_hand["default_code"] = "Segunda Mano"
+#             # Crear productos
+#             main_product = {
+#                 "name": row.get("titulo", "Sin nombre"),
+#                 "barcode": barcode,
+#                 "list_price": pvp,
+#                 "standard_price": pvd,
+#                 "weight": peso,
+#                 "sale_ok": sale_ok,
+#                 "detailed_type": "product",
+#                 #"image_1920": imagen_base64,
+#             }
 
-            existing_prodcut = self.env["product.template"].search(
-                [("barcode", "=", barcode)], limit=1
-            )
-            existing_prodcut_second_hand = self.env["product.template"].search(
-                [("barcode", "=", second_hand["barcode"])], limit=1
-            )
-            if existing_prodcut:
-                existing_prodcut.write(main_product)
-            else:
-                self.env["product.template"].create(main_product)
+#             second_hand = copy.deepcopy(main_product)
+#             second_hand["barcode"] += "OKA"
+#             second_hand["taxes_id"] = [(6, 0, [])]
+#             second_hand["default_code"] = "Segunda Mano"
 
-            if existing_prodcut_second_hand:
-                existing_prodcut_second_hand.write(second_hand)
-            else:
-                self.env["product.template"].create(second_hand)
+#             existing_prodcut = self.env["product.template"].search(
+#                 [("barcode", "=", barcode)], limit=1
+#             )
+#             existing_prodcut_second_hand = self.env["product.template"].search(
+#                 [("barcode", "=", second_hand["barcode"])], limit=1
+#             )
+#             if existing_prodcut:
+#                 existing_prodcut.write(main_product)
+#             else:
+#                 self.env["product.template"].create(main_product)
 
-        _logger.info(f"Lote procesado correctamente, {len(batch)} filas procesadas")
+#             if existing_prodcut_second_hand:
+#                 existing_prodcut_second_hand.write(second_hand)
+#             else:
+#                 self.env["product.template"].create(second_hand)
 
-    def sync_db(self):
-        """Actualizar los productos desde la fuente Canalocio."""
-        try:
-            _logger.info("Empieza sincronisacion de productos")
-            backend = self.env["canalocio.sync"].search([])
-            for ref in backend:
-                if "www.canalocio.es" in ref.location:
-                    # ref.action_fetch_data()
-                    ref.with_delay(channel="root.canalocio_sync").action_fetch_data()
-        except Exception as e:
-            _logger.info("Error al sincronizar productos")
-            _logger.info(f"Error: {e}")
+#         _logger.info(f"Lote procesado correctamente, {len(batch)} filas procesadas")
 
-    def imagen_a_base64(self, url):
-        import base64
+#     def sync_db(self):
+#         """Actualizar los productos desde la fuente Canalocio."""
+#         try:
+#             _logger.info("Empieza sincronisacion de productos")
+#             backend = self.env["canalocio.sync"].search([])
+#             for ref in backend:
+#                 if "www.canalocio.es" in ref.location:
+#                     # ref.action_fetch_data()
+#                     ref.with_delay(channel="root.canalocio_sync").action_fetch_data()
+#         except Exception as e:
+#             _logger.info("Error al sincronizar productos")
+#             _logger.info(f"Error: {e}")
 
-        timeout = 30
-        try:
-            response = requests.get(url, stream=True, timeout=timeout)
-            response.raise_for_status()
-            img_base64 = base64.b64encode(response.content).decode()
-            return img_base64
-        except requests.exceptions.RequestException as e:
-            _logger.info(f"Error al obtener imagen: {e}")
-            return None
-        except Exception as e:
-            _logger.info(f"Error desconocido: {e}")
-            return None
+#     def imagen_a_base64(self, url):
+#         import base64
+
+#         timeout = 30
+#         try:
+#             response = requests.get(url, stream=True, timeout=timeout)
+#             response.raise_for_status()
+#             img_base64 = base64.b64encode(response.content).decode()
+#             return img_base64
+#         except requests.exceptions.RequestException as e:
+#             _logger.info(f"Error al obtener imagen: {e}")
+#             return None
+#         except Exception as e:
+#             _logger.info(f"Error desconocido: {e}")
+#             return None

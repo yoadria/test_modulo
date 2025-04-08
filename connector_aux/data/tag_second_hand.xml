@@ -1,0 +1,7 @@
+<odoo>
+
+  <record id="tag_segunda_mano" model="product.tag">
+    <field name="name">Segunda-mano</field>
+  </record>
+
+</odoo>

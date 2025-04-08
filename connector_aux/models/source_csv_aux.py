@@ -2,6 +2,7 @@ import copy
 import logging
 
 from odoo import models
+from odoo.fields import Command
 
 from ..utils.import_utils import HTTPCSVReader
 
@@ -26,10 +27,8 @@ class CSVAuxSource(models.Model):
         lines = list(self._get_lines())  # Read all lines into a list
         if lines:
             _logger.info(">>>>>>>> Prueba contenido completo <<<<<<<<<<<<<")
-            for i, line in enumerate(lines):
-                if i >= 5:
-                    break
-                self.procces_product(line)
+            for line in lines:
+                self.with_delay().procces_product(line)
 
         else:
             _logger.info(">>>>>>>>>> Prueba no hay líneas <<<<<<<<<<")
@@ -46,19 +45,17 @@ class CSVAuxSource(models.Model):
     def procces_product(self, row):
         """crear o actualizar producto."""
         _logger.info(f"Iniciando creacion del producto >>>>> {row}")
-        # import wdb; wdb.set_trace()
-        # Ahora guardamos los productos
-        # row = dict(row)
 
         barcode = row.get("ean13", "")
 
         if not barcode or not barcode.isdigit():
             return
 
-        # Crear productos
+        # Mapeo de productos
         main_product = {
             "name": row.get("titulo", "Sin nombre"),
             "barcode": barcode,
+            "default_code": row.get("id", ""),
             "list_price": row.get("pvp", "0.0"),
             "standard_price": row.get("pvd", "0.0"),
             "weight": row.get("peso", "0.0"),
@@ -66,10 +63,12 @@ class CSVAuxSource(models.Model):
             "detailed_type": "product",
         }
 
+        tag_segunda_mano = self.env.ref("connector_aux.tag_segunda_mano")
         second_hand = copy.deepcopy(main_product)
         second_hand["barcode"] += "OKA"
-        second_hand["taxes_id"] = [(6, 0, [])]
-        second_hand["default_code"] = "Segunda Mano"
+        second_hand["default_code"] += "OKA"
+        second_hand["taxes_id"] = [Command.clear()]
+        second_hand["product_tag_ids"] = [Command.set(tag_segunda_mano.ids)]
 
         existing_prodcut = self.env["product.template"].search(
             [("barcode", "=", barcode)], limit=1

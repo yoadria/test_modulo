@@ -50,7 +50,7 @@
   </record>
 
     <!-- creamos la etiqueta de segunda mano -->
-  <record id="product_tag_second_hand" model="product.tag">
+  <record id="second_hand" model="product.tag">
     <field name="name">Second-hand</field>
   </record>
 

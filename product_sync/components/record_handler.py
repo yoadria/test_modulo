@@ -21,7 +21,7 @@ class CanalocioRecordHandler(Component):
                 "barcode": f"OKA{product_template.barcode}",
             }
         )
-        snd_hand_tag = self.env.ref("connector_importer_canal.product_tag_second_hand")
+        snd_hand_tag = self.env.ref("product_sync.second_hand")
         record_copy.write(
             {
                 "product_tag_ids": [Command.set(snd_hand_tag.ids)],
