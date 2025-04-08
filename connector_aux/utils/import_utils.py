@@ -11,6 +11,11 @@ from odoo.addons.connector_importer.utils.import_utils import (
     guess_csv_metadata,
 )
 
+# En esta seccion se obtiene de la url dentro del csv_path de la clase CSVSource
+# el contenido del csv y se lo pasa a la clase CSVReader para que lo procese
+# y lo convierta a un archivo csv para que pueda ser leido por el lector de csv
+# de odoo.
+
 
 def is_valid_url(url):
     try:
@@ -34,7 +39,7 @@ class HTTPCSVReader(CSVReader):
             ) as response:
                 response.raise_for_status()
 
-                # Read content in chunks
+                # Leemos el contenido de los chunks
                 content = b""
                 for chunk in response.iter_content(chunk_size=chunk_size):
                     content += chunk
@@ -55,13 +60,14 @@ class HTTPCSVReader(CSVReader):
         super().__init__(filepath=filepath, **kwargs)
 
     def _normalize_line_endings(self, content):
-        """Replace all line ending variants with standard \n."""
-        # Common line endings to replace (including \x85 which is NEXT LINE character)
+        """Reemplaza todas las variantes de finales de línea con el estándar \n."""
+        # Finales de línea comunes a reemplazar
+        # (incluyendo \x85 que es el carácter de NUEVA LÍNEA)
         line_endings = [
             b"\x85",  # Next Line
         ]
 
-        # First convert all line endings to \n
+        # Primero convierte todos los finales de línea a \n
         for ending in line_endings:
             content = content.replace(ending, b"\n")
 
