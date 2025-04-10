@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2025 Binhex
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+<!-- <odoo noupdate="1"> -->
+<odoo>
+
+  <record id="import_type_product_product" model="import.type">
+    <field name="name">Import Product</field>
+    <field name="key">product_product_canal</field>
+    <field name="options">
+- model: product.product
+  options:
+    importer:
+      odoo_unique_key: barcode
+    mapper:
+      name: product.product.canal.mapper
+    </field>
+  </record>
+
+  </odoo>

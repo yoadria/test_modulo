@@ -25,6 +25,5 @@
         "data/import_backend_data.xml",
         "data/tag_second_hand.xml",
         "data/recordset_data.xml",
-        "views/views.xml",
     ],
 }

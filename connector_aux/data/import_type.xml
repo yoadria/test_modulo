@@ -6,6 +6,14 @@
   <record id="import_type" model="import.type">
     <field name="name">Importar producto</field>
     <field name="key">product_product_connector</field>
+    <field name="options">
+- model: product.template
+  options:
+    importer:
+      odoo_unique_key: barcode
+    mapper:
+      name: product.template.mapper
+    </field>
 
   </record>
 
