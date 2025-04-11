@@ -20,9 +20,9 @@ class ProducTemplateHandler(Component):
         return product_template, default
 
     def odoo_pre_create(self, values, origin_values):
-        """value -> diccionario con nuestros valores mapeados
-        origin_values -> diccionario con los valores originales del csv"""
-        from ...utils.utils_tools import (  # Importa desde utils_tools
+        """intervenimos para convertir la imagen en base64
+        y controlar los numero decimales"""
+        from ...utils.utils_tools import (
             decimal_control,
             parse_imgbase64,
         )
@@ -33,9 +33,9 @@ class ProducTemplateHandler(Component):
         img_base64 = parse_imgbase64(img)
         values["image_1920"] = img_base64 or False
 
-        for price_field in ["list_price", "standard_price"]:
-            if price_field in values:
-                values[price_field] = decimal_control(values[price_field])
+        for num in ["list_price", "standard_price", "weight"]:
+            if num in values:
+                values[num] = decimal_control(values[num])
 
     def odoo_post_create(self, odoo_record, values, orig_values):
         """Post-create hook for odoo product.template records."""
@@ -54,6 +54,22 @@ class ProducTemplateHandler(Component):
                 "taxes_id": [Command.clear()],
             }
         )
+
+    def odoo_pre_write(self, odoo_record, values, orig_values):
+        from ...utils.utils_tools import (
+            decimal_control,
+            parse_imgbase64,
+        )
+
+        # import wdb; wdb.set_trace()
+        # se convierte url en imagen si se puede
+        img = values.get("image_1920")
+        img_base64 = parse_imgbase64(img)
+        values["image_1920"] = img_base64 or False
+
+        for num in ["list_price", "standard_price", "weight"]:
+            if num in values:
+                values[num] = decimal_control(values[num])
 
     def odoo_post_write(self, odoo_record, values, orig_values):
         """Post-write hook for odoo product.product records."""

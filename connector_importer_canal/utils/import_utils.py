@@ -35,7 +35,6 @@ class HTTPCSVReader(CSVReader):
                 headers={"Accept-Encoding": "gzip, deflate"},
             ) as response:
                 response.raise_for_status()
-
                 # Read content in chunks
                 content = b""
                 for chunk in response.iter_content(chunk_size=chunk_size):

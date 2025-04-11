@@ -42,11 +42,11 @@ class HTTPCSVReader(CSVReader):
                 # Leemos el contenido de los chunks
                 content = b""
 
-                count = 0
+                # count = 0
                 for chunk in response.iter_content(chunk_size=chunk_size):
-                    if count == 1:
-                        break
-                    count += 1
+                    # if count == 40:
+                    #     break
+                    # count += 1
                     content += chunk
 
                 if content:

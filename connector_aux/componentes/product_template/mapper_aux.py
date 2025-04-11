@@ -17,10 +17,12 @@ class ProductTemplateMapper(Component):
         ("pvd", "standard_price"),
         ("peso", "weight"),
         ("caratula", "image_1920"),
+        # ("tipo", "categ_id"),
     ]
     required = {
         "titulo": "name",
         "ean13": "barcode",
+        "tipo": "categ_id",
     }
 
     defaults = [("sale_ok", True)]

@@ -7,7 +7,7 @@ _logger = logging.getLogger(__name__)
 
 
 def parse_imgbase64(url):
-    timeout = 30
+    timeout = 50
     try:
         response = requests.get(url, stream=True, timeout=timeout)
         response.raise_for_status()
