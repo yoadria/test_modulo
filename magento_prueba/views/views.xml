@@ -1,5 +1,5 @@
 <odoo>
-  <data>
+
     <!-- explicit list view definition -->
 
     <record model="ir.ui.view" id="backend_test_view_tree">
@@ -7,7 +7,7 @@
       <field name="model">magento.backend.test</field>
       <field name="arch" type="xml">
         <tree>
-            <field name="location"/>
+            <field name="location" />
         </tree>
       </field>
     </record>
@@ -20,8 +20,14 @@
                 <form string="Backend Test">
                     <sheet>
                         <group>
-                            <field name="location"/>
-                            <button name="action_fetch_data" type="object" string="Fetch Data" class="btn-primary" groups="base.group_user"/>  
+                            <field name="location" />
+                            <button
+                            name="action_fetch_data"
+                            type="object"
+                            string="Fetch Data"
+                            class="btn-primary"
+                            groups="base.group_user"
+                        />
                         </group>
                     </sheet>
                 </form>
@@ -56,13 +62,17 @@
 
     <!-- Top menu item -->
 
-    <menuitem name="Backend Test" id="menu_backend_test"/>
+    <menuitem name="Backend Test" id="menu_backend_test" />
 
     <!-- menu categories -->
 
-    <menuitem name="Backend Test" id="backend_test_1" parent="menu_backend_test" 
-              action="action_backend_test"/>
-   
+    <menuitem
+        name="Backend Test"
+        id="backend_test_1"
+        parent="menu_backend_test"
+        action="action_backend_test"
+    />
+
     <!-- actions -->
 <!--
     <menuitem name="List" id="test_modulo_2.menu_1_list" parent="test_modulo_2.menu_1"
@@ -70,5 +80,5 @@
     <menuitem name="Server to list" id="test_modulo_2" parent="test_modulo_2.menu_2"
               action="test_modulo_2.action_server"/>
 -->
-  </data>
+
 </odoo>

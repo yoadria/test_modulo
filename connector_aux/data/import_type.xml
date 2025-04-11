@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2022 Camptocamp SA
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+  <record id="import_type" model="import.type">
+    <field name="name">Importar producto</field>
+    <field name="key">product_product_connector</field>
+    <field name="options">
+- model: product.template
+  options:
+    importer:
+      odoo_unique_key: barcode
+    mapper:
+      name: product.template.mapper
+    </field>
+
+  </record>
+
+</odoo>

@@ -1,0 +1,70 @@
+<odoo>
+
+
+    <!-- explicit list view definition -->
+
+    <record model="ir.ui.view" id="source_view">
+        <field name="name">source.view</field>
+        <field name="model">import.source.csv</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+                <field name="csv_path" />
+            </tree>
+        </field>
+    </record>
+
+
+    <record id="source_from_view" model="ir.ui.view">
+        <field name="name">source.from.view</field>
+        <field name="model">import.source.csv</field>
+        <field name="arch" type="xml">
+            <form string="Backend Test">
+                <sheet>
+                    <group>
+                        <field name="name" />
+                        <field name="csv_path" />
+                        <field name="csv_delimiter" />
+                        <field name="csv_encoding" />
+                        <field name="chunk_size" />
+                    </group>
+                    <group>
+                        <button
+                            name="prueba"
+                            type="object"
+                            string="Test"
+                            class="btn-primary"
+                        />
+
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+        <!-- actions opening views on models -->
+
+        <record model="ir.actions.act_window" id="action_source">
+            <field name="name">Source</field>
+            <field name="res_model">import.source.csv</field>
+            <field name="view_mode">tree,form</field>
+            <field name="target">current</field>
+        </record>
+
+
+
+        <!-- Top menu item -->
+
+        <menuitem name="Source" id="menu_source" action="action_source" />
+
+        <!-- menu categories -->
+
+        <!-- <menuitem
+        name=""
+        id="menu_canalocio_1"
+        parent="menu_canalocio"
+        action="action_canalocio_sync"
+    /> -->
+
+
+</odoo>

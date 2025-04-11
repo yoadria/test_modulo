@@ -1,5 +1,4 @@
 <odoo>
-    <data>
 <!--
           <record id="object0" model="test_modulo_2.test_modulo_2">
             <field name="name">Object 0</field>
@@ -26,5 +25,4 @@
             <field name="value">40</field>
           </record>
 -->
-    </data>
 </odoo>

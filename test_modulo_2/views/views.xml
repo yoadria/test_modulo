@@ -1,5 +1,5 @@
 <odoo>
-  <data>
+
     <!-- explicit list view definition -->
 <!--
     <record model="ir.ui.view" id="test_modulo_2.list">
@@ -20,14 +20,14 @@
           <field name="model">currency.exchange.rate</field>
           <field name="arch" type="xml">
               <form string="Currency Exchange">
-                 
+
                 <group>
-                  <field name="moneda_origen_ids"/>
-                  <field name="moneda_destino_ids"/>
-                  <field name="tasa_cambio"/>
+                  <field name="moneda_origen_ids" />
+                  <field name="moneda_destino_ids" />
+                  <field name="tasa_cambio" />
                 </group>
                 <footer>
-                  <button string="Cerrar" class="btn-primary" special="cancel"/>
+                  <button string="Cerrar" class="btn-primary" special="cancel" />
                 </footer>
               </form>
           </field>
@@ -61,13 +61,17 @@
 
     <!-- Top menu item -->
 
-    <menuitem name="Cambio moneda" id="currency_menu_root"/>
+    <menuitem name="Cambio moneda" id="currency_menu_root" />
 
     <!-- menu categories -->
 
-    <menuitem name="cambio moneda" id="currency_menu_1" parent="currency_menu_root" 
-              action="action_currency_window"/>
-   
+    <menuitem
+        name="cambio moneda"
+        id="currency_menu_1"
+        parent="currency_menu_root"
+        action="action_currency_window"
+    />
+
     <!-- actions -->
 <!--
     <menuitem name="List" id="test_modulo_2.menu_1_list" parent="test_modulo_2.menu_1"
@@ -75,5 +79,5 @@
     <menuitem name="Server to list" id="test_modulo_2" parent="test_modulo_2.menu_2"
               action="test_modulo_2.action_server"/>
 -->
-  </data>
+
 </odoo>
